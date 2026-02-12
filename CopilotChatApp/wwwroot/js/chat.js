@@ -13,23 +13,29 @@ $(document).ready(function () {
     function parseMarkdown(text) {
         if (!text) return '';
 
+        // Limit text length to prevent ReDoS attacks
+        const maxLength = 50000;
+        if (text.length > maxLength) {
+            text = text.substring(0, maxLength);
+        }
+
         // Escape HTML to prevent XSS
         text = $('<div>').text(text).html();
 
-        // Parse markdown
-        // Bold: **text** or __text__
-        text = text.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-        text = text.replace(/__(.+?)__/g, '<strong>$1</strong>');
+        // Parse markdown - process in order to avoid conflicts
+        // Bold: **text** or __text__ (process first)
+        text = text.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+        text = text.replace(/__([^_]+?)__/g, '<strong>$1</strong>');
 
-        // Italic: *text* or _text_
-        text = text.replace(/\*(.+?)\*/g, '<em>$1</em>');
-        text = text.replace(/_(.+?)_/g, '<em>$1</em>');
+        // Italic: *text* or _text_ (process after bold to avoid conflicts)
+        text = text.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>');
+        text = text.replace(/(?<!_)_([^_]+?)_(?!_)/g, '<em>$1</em>');
 
         // Links: [text](url)
-        text = text.replace(/\[(.+?)\]\((.+?)\)/g, '<a href="$2" target="_blank">$1</a>');
+        text = text.replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, '<a href="$2" target="_blank">$1</a>');
 
         // Inline code: `code`
-        text = text.replace(/`(.+?)`/g, '<code>$1</code>');
+        text = text.replace(/`([^`]+?)`/g, '<code>$1</code>');
 
         // Headers: # Header
         text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');

@@ -7,7 +7,6 @@ builder.Services.AddControllersWithViews();
 
 // Register HttpClient and CopilotService
 builder.Services.AddHttpClient<ICopilotService, CopilotService>();
-builder.Services.AddScoped<ICopilotService, CopilotService>();
 
 var app = builder.Build();
 
