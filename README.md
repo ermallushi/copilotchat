@@ -39,6 +39,12 @@ A .NET Core 8 web application for chatting with a Power Automate Copilot agent A
    }
    ```
 
+   **Security Note**: The API endpoint URL in this repository contains authentication tokens for demonstration purposes. In production:
+   - Store sensitive API URLs and tokens in environment variables
+   - Use Azure Key Vault or similar secure configuration stores
+   - Use .NET User Secrets for local development
+   - Never commit actual API credentials to source control
+
 4. Run the application:
    ```bash
    dotnet run

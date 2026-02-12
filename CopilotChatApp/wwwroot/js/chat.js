@@ -23,19 +23,22 @@ $(document).ready(function () {
         text = $('<div>').text(text).html();
 
         // Parse markdown - process in order to avoid conflicts
-        // Bold: **text** or __text__ (process first)
+        // Inline code first to protect it from other transformations
+        text = text.replace(/`([^`]+?)`/g, '___CODE___$1___/CODE___');
+
+        // Bold: **text** or __text__
         text = text.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
         text = text.replace(/__([^_]+?)__/g, '<strong>$1</strong>');
 
-        // Italic: *text* or _text_ (process after bold to avoid conflicts)
-        text = text.replace(/(?<!\*)\*([^*]+?)\*(?!\*)/g, '<em>$1</em>');
-        text = text.replace(/(?<!_)_([^_]+?)_(?!_)/g, '<em>$1</em>');
+        // Italic: *text* or _text_ (single characters only, not part of bold)
+        text = text.replace(/([^*]|^)\*([^*]+?)\*([^*]|$)/g, '$1<em>$2</em>$3');
+        text = text.replace(/([^_]|^)_([^_]+?)_([^_]|$)/g, '$1<em>$2</em>$3');
 
         // Links: [text](url)
         text = text.replace(/\[([^\]]+?)\]\(([^)]+?)\)/g, '<a href="$2" target="_blank">$1</a>');
 
-        // Inline code: `code`
-        text = text.replace(/`([^`]+?)`/g, '<code>$1</code>');
+        // Restore inline code
+        text = text.replace(/___CODE___([^_]+?)___\/CODE___/g, '<code>$1</code>');
 
         // Headers: # Header
         text = text.replace(/^### (.+)$/gm, '<h3>$1</h3>');
