@@ -4,6 +4,8 @@ A .NET Core 8 web application for chatting with a Power Automate Copilot agent A
 
 ## Features
 - Real-time chat interface with modern, responsive design
+- **Conversation ID Support**: Maintains conversation context across messages
+- **New Chat**: Start a fresh conversation with a new conversation ID
 - Markdown rendering for rich responses (bold, italic, links, lists, etc.)
 - User messages on the right, bot responses on the left
 - Auto-scroll to latest message
@@ -60,6 +62,32 @@ Edit `appsettings.json` to configure:
 - `CopilotApi:BaseUrl` - Your Power Automate API endpoint
 - `CopilotApi:TimeoutSeconds` - API timeout duration (default: 30 seconds)
 
+### API Request/Response Format
+
+The application communicates with the Power Automate Copilot API using the following format:
+
+**Request:**
+```json
+{
+    "text": "your message here",
+    "conversationId": "optional-conversation-id"
+}
+```
+
+**Response:**
+```json
+{
+    "result": "The response from Copilot (may contain markdown)",
+    "conversationId": "conversation-id-from-api"
+}
+```
+
+The conversation ID is:
+- Optional in the first message (starts a new conversation)
+- Returned by the API in the response
+- Automatically included in subsequent messages to maintain context
+- Cleared when starting a new chat or clearing the chat history
+
 ## Usage
 
 1. Type your message in the input field at the bottom of the chat interface
@@ -73,7 +101,15 @@ Edit `appsettings.json` to configure:
    - Headers
    - Code blocks
 
-5. Use the "Clear Chat" button to reset the conversation
+5. Use the "New Chat" button to start a fresh conversation (clears conversation ID)
+6. Use the "Clear Chat" button to reset the conversation history
+
+### Conversation Continuity
+The application maintains conversation context by:
+- Automatically storing the conversation ID from API responses
+- Sending the conversation ID with subsequent messages
+- Clearing the conversation ID when starting a new chat
+- Each "New Chat" session gets its own unique conversation ID from the API
 
 ## Technologies Used
 
@@ -125,19 +161,21 @@ The application follows clean architecture principles:
 
 #### CopilotService
 - Manages HTTP communication with the Power Automate API
+- Handles conversation ID to maintain context across messages
 - Handles request serialization and response deserialization
 - Implements proper error handling and timeout management
 - Uses IHttpClientFactory for efficient HTTP client management
 
 #### ChatController
 - Provides the chat interface (Index action)
-- Handles message sending (SendMessage action)
-- Returns JSON responses for AJAX requests
+- Handles message sending with conversation ID support (SendMessage action)
+- Returns JSON responses with conversation ID for AJAX requests
 - Implements anti-forgery token validation for security
 
 #### Chat Interface
 - Modern, gradient-styled chat bubbles
 - Real-time message display
+- Conversation ID management for maintaining context
 - Markdown rendering for bot responses
 - Smooth animations and transitions
 - Mobile-responsive design
