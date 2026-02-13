@@ -33,10 +33,11 @@ namespace CopilotChatApp.Services
         /// Sends a message to the Copilot API and returns the response.
         /// </summary>
         /// <param name="message">The message to send.</param>
-        /// <returns>The response from the Copilot.</returns>
+        /// <param name="conversationId">Optional conversation ID for maintaining context.</param>
+        /// <returns>A tuple containing the response and the conversation ID.</returns>
         /// <exception cref="ArgumentException">Thrown when the message is null or empty.</exception>
         /// <exception cref="HttpRequestException">Thrown when the API request fails.</exception>
-        public async Task<string> SendMessageAsync(string message)
+        public async Task<(string Response, string? ConversationId)> SendMessageAsync(string message, string? conversationId = null)
         {
             if (string.IsNullOrWhiteSpace(message))
             {
@@ -51,7 +52,11 @@ namespace CopilotChatApp.Services
                     throw new InvalidOperationException("Copilot API URL is not configured.");
                 }
 
-                var request = new ChatRequest { Text = message };
+                var request = new ChatRequest 
+                { 
+                    Text = message,
+                    ConversationId = conversationId
+                };
                 var jsonContent = JsonSerializer.Serialize(request, new JsonSerializerOptions
                 {
                     PropertyNamingPolicy = JsonNamingPolicy.CamelCase
@@ -59,7 +64,7 @@ namespace CopilotChatApp.Services
 
                 var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-                _logger.LogInformation("Sending message to Copilot API: {Message}", message);
+                _logger.LogInformation("Sending message to Copilot API: {Message}, ConversationId: {ConversationId}", message, conversationId ?? "new");
 
                 var response = await _httpClient.PostAsync(apiUrl, content);
                 response.EnsureSuccessStatusCode();
@@ -73,7 +78,10 @@ namespace CopilotChatApp.Services
                     PropertyNameCaseInsensitive = true
                 });
 
-                return chatResponse?.Result ?? "No response received.";
+                var result = chatResponse?.Result ?? "No response received.";
+                var returnedConversationId = chatResponse?.ConversationId?.Trim();
+                
+                return (result, returnedConversationId);
             }
             catch (HttpRequestException ex)
             {

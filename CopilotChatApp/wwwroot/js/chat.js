@@ -5,9 +5,13 @@ $(document).ready(function () {
     const chatMessages = $('#chatMessages');
     const sendButton = $('#sendButton');
     const loadingIndicator = $('#loadingIndicator');
+    const newChatButton = $('#newChat');
     const clearChatButton = $('#clearChat');
     const errorToast = new bootstrap.Toast($('#errorToast')[0]);
     const errorMessage = $('#errorMessage');
+    
+    // Conversation state
+    let conversationId = null;
 
     // Simple markdown parser
     function parseMarkdown(text) {
@@ -165,19 +169,33 @@ $(document).ready(function () {
         // Show loading
         setLoading(true);
 
+        // Prepare data
+        const formData = {
+            message: message,
+            __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+        };
+        
+        // Add conversationId if it exists
+        if (conversationId) {
+            formData.conversationId = conversationId;
+        }
+
         // Send to server
         $.ajax({
             url: chatForm.attr('action'),
             method: 'POST',
-            data: {
-                message: message,
-                __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
-            },
+            data: formData,
             success: function (data) {
                 setLoading(false);
 
                 if (data.success) {
                     addMessage(data.response, false);
+                    
+                    // Store conversation ID from response
+                    if (data.conversationId) {
+                        conversationId = data.conversationId;
+                        console.log('Conversation ID:', conversationId);
+                    }
                 } else {
                     showError(data.error || 'An error occurred');
                 }
@@ -189,10 +207,27 @@ $(document).ready(function () {
         });
     });
 
+    // Start new chat
+    newChatButton.on('click', function () {
+        if (chatMessages.children().length > 1 || (chatMessages.children().length === 1 && !chatMessages.find('.welcome-message').length)) {
+            if (confirm('Are you sure you want to start a new chat? This will clear the current conversation.')) {
+                conversationId = null;
+                chatMessages.html('<div class="welcome-message"><p>Welcome! Ask me anything about your business processes.</p></div>');
+                console.log('New chat started - conversation ID cleared');
+            }
+        } else {
+            conversationId = null;
+            chatMessages.html('<div class="welcome-message"><p>Welcome! Ask me anything about your business processes.</p></div>');
+            console.log('New chat started - conversation ID cleared');
+        }
+    });
+
     // Clear chat
     clearChatButton.on('click', function () {
         if (confirm('Are you sure you want to clear the chat history?')) {
+            conversationId = null;
             chatMessages.html('<div class="welcome-message"><p>Welcome! Ask me anything about your business processes.</p></div>');
+            console.log('Chat cleared - conversation ID cleared');
         }
     });
 

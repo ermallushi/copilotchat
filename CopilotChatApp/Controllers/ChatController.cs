@@ -35,10 +35,11 @@ namespace CopilotChatApp.Controllers
         /// Sends a message to the Copilot and returns the response.
         /// </summary>
         /// <param name="message">The message to send.</param>
+        /// <param name="conversationId">Optional conversation ID for maintaining context.</param>
         /// <returns>A JSON result containing the response or error.</returns>
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> SendMessage([FromForm] string message)
+        public async Task<IActionResult> SendMessage([FromForm] string message, [FromForm] string? conversationId = null)
         {
             try
             {
@@ -47,8 +48,8 @@ namespace CopilotChatApp.Controllers
                     return Json(new { success = false, error = "Message cannot be empty." });
                 }
 
-                var response = await _copilotService.SendMessageAsync(message);
-                return Json(new { success = true, response });
+                var (response, returnedConversationId) = await _copilotService.SendMessageAsync(message, conversationId);
+                return Json(new { success = true, response, conversationId = returnedConversationId });
             }
             catch (ArgumentException ex)
             {

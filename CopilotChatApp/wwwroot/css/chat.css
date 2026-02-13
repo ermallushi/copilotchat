@@ -28,6 +28,11 @@
     font-weight: 600;
 }
 
+.chat-header .header-buttons {
+    display: flex;
+    gap: 10px;
+}
+
 .chat-header button {
     background: rgba(255, 255, 255, 0.2);
     border: 1px solid rgba(255, 255, 255, 0.3);
@@ -37,6 +42,17 @@
 .chat-header button:hover {
     background: rgba(255, 255, 255, 0.3);
     color: white;
+}
+
+.chat-header .btn-primary {
+    background: rgba(255, 255, 255, 0.9);
+    color: #667eea;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.chat-header .btn-primary:hover {
+    background: white;
+    color: #5568d3;
 }
 
 /* Chat Messages Area */
@@ -259,6 +275,16 @@
 
     .chat-header h2 {
         font-size: 1.2rem;
+    }
+    
+    .chat-header .header-buttons {
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .chat-header .header-buttons button {
+        font-size: 0.8rem;
+        padding: 4px 8px;
     }
 
     .chat-input-area input {
